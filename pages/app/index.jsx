@@ -14,6 +14,12 @@ const App = () => {
   const [downloadFileName, setDownloadFileName] = useState('');
   const ffmpeg = useRef();
 
+  const calculateFontSize = (width) => {
+    const baseWidth = 1920;
+    const baseFontSize = 72;
+    return (width / baseWidth) * baseFontSize;
+  };
+
   const generatePrerollVideo = async () => {
     try {
       if (!ffmpeg.current.isLoaded()) {
@@ -26,6 +32,7 @@ const App = () => {
 
       const fps = parseFloat(timebase);
       const [width, height] = resolution.split('x').map(Number);
+      const fontSize = calculateFontSize(width);
 
       const prerollCommand = [
         '-f', 'lavfi',
@@ -34,7 +41,7 @@ const App = () => {
         '-i', `color=c=white:s=${width}x${height}:r=${fps}:d=${1 / fps}`,
         '-f', 'lavfi',
         '-i', `color=c=black:s=${width}x${height}:r=${fps}:d=${10 - 8 - (1 / fps)}`,
-        '-filter_complex', `[0:v]drawtext=fontfile=Arial.ttf:text='${filmTitle.replaceAll("'", "\\'")}':fontcolor=white:fontsize=24:x=(w-text_w)/2:y=(h-text_h)/2[v0]; [1:v]drawtext=fontfile=Arial.ttf:text='2':fontcolor=black:fontsize=48:x=(w-text_w)/2:y=(h-text_h)/2[v1]; [v0][v1][2:v]concat=n=3:v=1:a=0[out]`,
+        '-filter_complex', `[0:v]drawtext=fontfile=Arial.ttf:text='${filmTitle.replaceAll("'", "\\'")}':fontcolor=white:fontsize=${fontSize}:x=(w-text_w)/2:y=(h-text_h)/2[v0]; [1:v]drawtext=fontfile=Arial.ttf:text='2':fontcolor=black:fontsize=${fontSize * 2}:x=(w-text_w)/2:y=(h-text_h)/2[v1]; [v0][v1][2:v]concat=n=3:v=1:a=0[out]`,
         '-map', '[out]',
         '-c:v', 'prores',
         '-profile:v', '3',
@@ -94,7 +101,6 @@ const App = () => {
           <Select id="resolution-select" value={resolution} style={inputStyle} onChange={(value) => setResolution(value)}>
             <Option value="1280x720">1280x720</Option>
             <Option value="1920x1080">1920x1080</Option>
-            <Option value="3840x2160">3840x2160</Option>
           </Select>
         </div>
 
