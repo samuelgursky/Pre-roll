@@ -77,14 +77,15 @@ const App = () => {
     });
   }, []);
 
-  const inputStyle = { width: 300, marginBottom: 10 };
+  const inputStyle = { width: '100%', marginBottom: 10 };
   const labelStyle = { display: 'block', marginBottom: 5 };
+  const inputGroupStyle = { maxWidth: 500, margin: '0 auto', textAlign: 'left' };
 
   return (
     <div className="page-app" style={{ textAlign: 'center' }}>
       <h1>Preroll Sync Video Generator</h1>
 
-      <div className="input-group" style={{ maxWidth: 400, margin: '0 auto', textAlign: 'left' }}>
+      <div className="input-group" style={inputGroupStyle}>
         <div style={{ marginBottom: 20 }}>
           <label htmlFor="timebase-select" style={labelStyle}>Frame Rate:</label>
           <Select id="timebase-select" value={timebase} style={inputStyle} onChange={setTimebase}>
