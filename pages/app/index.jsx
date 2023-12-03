@@ -24,16 +24,17 @@ const App = () => {
       ffmpeg.current.FS('writeFile', 'Arial.ttf', fontData);
   
       const fps = parseFloat(timebase);
+      const framesPerSecond = Math.round(fps);
       const frameNumberFor2Pop = Math.ceil(8 * fps); // The frame number where the "2" should appear
-      
       const prerollCommand = [
         '-f', 'lavfi',
-        '-i', `color=c=black:s=640x480:r=${fps}`,
-        '-t', '10',
-        '-vf', [
-          `drawtext=fontfile=Arial.ttf:text='${filmTitle.replaceAll("'", "\\'")}':fontcolor=white:fontsize=24:x=(w-text_w)/2:y=(h-text_h)/2:enable='lt(t,8)'`, // Display the title until 8 seconds
-          `drawtext=fontfile=Arial.ttf:text='2':fontcolor=white:fontsize=48:x=(w-text_w)/2:y=(h-text_h)/2:enable='eq(n,${frameNumberFor2Pop})'` // Display "2" only on the exact frame
-        ].join(','),
+        '-i', `color=c=black:s=640x480:r=${fps}:d=8`, // 8 seconds of black background
+        '-f', 'lavfi',
+        '-i', `color=c=white:s=640x480:r=${fps}:d=${1 / fps}`, // 1 frame of white background
+        '-f', 'lavfi',
+        '-i', `color=c=black:s=640x480:r=${fps}:d=${10 - 8 - (1 / fps)}`, // Remainder of black background
+        '-filter_complex', `[0:v]drawtext=fontfile=Arial.ttf:text='${filmTitle.replaceAll("'", "\\'")}':fontcolor=white:fontsize=24:x=(w-text_w)/2:y=(h-text_h)/2[v0]; [1:v]drawtext=fontfile=Arial.ttf:text='2':fontcolor=black:fontsize=48:x=(w-text_w)/2:y=(h-text_h)/2[v1]; [v0][v1][2:v]concat=n=3:v=1:a=0[out]`,
+        '-map', '[out]',
         '-c:v', 'prores',
         '-profile:v', '3',
         '-timecode', startingTimecode,
