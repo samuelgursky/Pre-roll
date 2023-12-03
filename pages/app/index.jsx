@@ -15,22 +15,31 @@ const App = () => {
 
   const generatePrerollVideo = async () => {
     try {
-      const arialBase64 = fontBase64;
+      if (!ffmpeg.current.isLoaded()) {
+        await ffmpeg.current.load();
+      }
+  
+      const arialBase64 = fontBase64; // Assumes this constant is already defined elsewhere in your code with the base64-encoded font
       const fontData = await fetchFile(`data:font/ttf;base64,${arialBase64}`);
       ffmpeg.current.FS('writeFile', 'Arial.ttf', fontData);
-
+  
+      const fps = parseFloat(timebase);
+      const frameNumberFor2Pop = Math.ceil(8 * fps); // The frame number where the "2" should appear
+      
       const prerollCommand = [
         '-f', 'lavfi',
-        '-i', `color=c=black:s=640x480:r=${timebase}`,
+        '-i', `color=c=black:s=640x480:r=${fps}`,
         '-t', '10',
-        '-vf', `drawtext=fontfile=Arial.ttf:text='${filmTitle}':fontcolor=white:fontsize=24:x=(w-text_w)/2:y=(h-text_h)/2:enable='between(t,0,8)',drawtext=fontfile=Arial.ttf:text='2':fontcolor=white:fontsize=48:x=(w-text_w)/2:y=(h-text_h)/2:enable='between(t,8,8.041)'`,
-        '-af', `sine=frequency=1000:duration=0.041:enable='between(t,8,8.041)'`,
+        '-vf', [
+          `drawtext=fontfile=Arial.ttf:text='${filmTitle.replaceAll("'", "\\'")}':fontcolor=white:fontsize=24:x=(w-text_w)/2:y=(h-text_h)/2:enable='lt(t,8)'`, // Display the title until 8 seconds
+          `drawtext=fontfile=Arial.ttf:text='2':fontcolor=white:fontsize=48:x=(w-text_w)/2:y=(h-text_h)/2:enable='eq(n,${frameNumberFor2Pop})'` // Display "2" only on the exact frame
+        ].join(','),
         '-c:v', 'prores',
         '-profile:v', '3',
-        '-timecode', startingTimecode, // include the starting timecode in the command
+        '-timecode', startingTimecode,
         'preroll.mov',
       ];
-
+  
       await ffmpeg.current.run(...prerollCommand);
       const data = ffmpeg.current.FS('readFile', 'preroll.mov');
       const blob = new Blob([data.buffer], { type: 'video/quicktime' });
@@ -44,14 +53,11 @@ const App = () => {
   };
 
   useEffect(() => {
-    (async () => {
-      ffmpeg.current = createFFmpeg({
-        log: true,
-        corePath:
-          'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.11.0/dist/ffmpeg-core.js',
-      });
-      await ffmpeg.current.load();
-    })();
+    ffmpeg.current = createFFmpeg({
+      log: true,
+      corePath:
+        'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.11.0/dist/ffmpeg-core.js',
+    });
   }, []);
 
   return (
