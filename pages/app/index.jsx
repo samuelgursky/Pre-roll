@@ -8,8 +8,9 @@ const { Option } = Select;
 const App = () => {
   const [timebase, setTimebase] = useState('23.976');
   const [filmTitle, setFilmTitle] = useState('');
-  const [href, setHref] = useState("");
-  const [downloadFileName, setDownloadFileName] = useState("");
+  const [startingTimecode, setStartingTimecode] = useState('00:59:50:00');
+  const [href, setHref] = useState('');
+  const [downloadFileName, setDownloadFileName] = useState('');
   const ffmpeg = useRef();
 
   const generatePrerollVideo = async () => {
@@ -26,7 +27,8 @@ const App = () => {
         '-af', `sine=frequency=1000:duration=0.041:enable='between(t,8,8.041)'`,
         '-c:v', 'prores',
         '-profile:v', '3',
-        'preroll.mov'
+        '-timecode', startingTimecode, // include the starting timecode in the command
+        'preroll.mov',
       ];
 
       await ffmpeg.current.run(...prerollCommand);
@@ -45,7 +47,8 @@ const App = () => {
     (async () => {
       ffmpeg.current = createFFmpeg({
         log: true,
-        corePath: 'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.11.0/dist/ffmpeg-core.js',
+        corePath:
+          'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.11.0/dist/ffmpeg-core.js',
       });
       await ffmpeg.current.load();
     })();
@@ -56,40 +59,46 @@ const App = () => {
       <h2 align="center">Preroll Video Generator</h2>
 
       <div className="input-group">
-  <label htmlFor="timebase-select">Select Frame Rate:</label>
-  <Select
-    id="timebase-select"
-    value={timebase}
-    style={{ width: 120 }}
-    onChange={setTimebase}
-  >
-    <Option value="23.976">23.976 fps</Option>
-    <Option value="24">24 fps</Option>
-    <Option value="25">25 fps</Option>
-    <Option value="29.97">29.97 fps</Option>
-    <Option value="30">30 fps</Option>
-  </Select>
+        <label htmlFor="timebase-select">Select Frame Rate:</label>
+        <Select
+          id="timebase-select"
+          value={timebase}
+          style={{ width: 120 }}
+          onChange={setTimebase}
+        >
+          <Option value="23.976">23.976 fps</Option>
+          <Option value="24">24 fps</Option>
+          <Option value="25">25 fps</Option>
+          <Option value="29.97">29.97 fps</Option>
+          <Option value="30">30 fps</Option>
+        </Select>
 
-  <Input
-    value={filmTitle}
-    placeholder="Enter film title"
-    onChange={(event) => setFilmTitle(event.target.value)}
-  />
+        <Input
+          value={filmTitle}
+          placeholder="Enter film title"
+          onChange={(event) => setFilmTitle(event.target.value)}
+        />
 
-  <Button type="primary" onClick={generatePrerollVideo}>
-    Generate Preroll Video
-  </Button>
-</div>
+        <Input
+          value={startingTimecode}
+          placeholder="Enter starting timecode"
+          onChange={(event) => setStartingTimecode(event.target.value)}
+        />
 
-{href && (
-  <div>
-    <a href={href} download={downloadFileName}>
-      Download Preroll Video
-    </a>
-  </div>
-)}
-</div>
-);
+        <Button type="primary" onClick={generatePrerollVideo}>
+          Generate Preroll Video
+        </Button>
+      </div>
+
+      {href && (
+        <div>
+          <a href={href} download={downloadFileName}>
+            Download Preroll Video
+          </a>
+        </div>
+      )}
+    </div>
+  );
 };
 
 export default App;
