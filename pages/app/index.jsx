@@ -9,6 +9,7 @@ const App = () => {
   const [timebase, setTimebase] = useState('23.976');
   const [filmTitle, setFilmTitle] = useState('');
   const [startingTimecode, setStartingTimecode] = useState('00:59:50:00');
+  const [resolution, setResolution] = useState('1280x720');
   const [href, setHref] = useState('');
   const [downloadFileName, setDownloadFileName] = useState('');
   const ffmpeg = useRef();
@@ -18,21 +19,21 @@ const App = () => {
       if (!ffmpeg.current.isLoaded()) {
         await ffmpeg.current.load();
       }
-  
-      const arialBase64 = fontBase64; // Assumes this constant is already defined elsewhere in your code with the base64-encoded font
+
+      const arialBase64 = fontBase64;
       const fontData = await fetchFile(`data:font/ttf;base64,${arialBase64}`);
       ffmpeg.current.FS('writeFile', 'Arial.ttf', fontData);
-  
+
       const fps = parseFloat(timebase);
-      const framesPerSecond = Math.round(fps);
-      const frameNumberFor2Pop = Math.ceil(8 * fps); // The frame number where the "2" should appear
+      const [width, height] = resolution.split('x').map(Number);
+
       const prerollCommand = [
         '-f', 'lavfi',
-        '-i', `color=c=black:s=640x480:r=${fps}:d=8`, // 8 seconds of black background
+        '-i', `color=c=black:s=${width}x${height}:r=${fps}:d=8`,
         '-f', 'lavfi',
-        '-i', `color=c=white:s=640x480:r=${fps}:d=${1 / fps}`, // 1 frame of white background
+        '-i', `color=c=white:s=${width}x${height}:r=${fps}:d=${1 / fps}`,
         '-f', 'lavfi',
-        '-i', `color=c=black:s=640x480:r=${fps}:d=${10 - 8 - (1 / fps)}`, // Remainder of black background
+        '-i', `color=c=black:s=${width}x${height}:r=${fps}:d=${10 - 8 - (1 / fps)}`,
         '-filter_complex', `[0:v]drawtext=fontfile=Arial.ttf:text='${filmTitle.replaceAll("'", "\\'")}':fontcolor=white:fontsize=24:x=(w-text_w)/2:y=(h-text_h)/2[v0]; [1:v]drawtext=fontfile=Arial.ttf:text='2':fontcolor=black:fontsize=48:x=(w-text_w)/2:y=(h-text_h)/2[v1]; [v0][v1][2:v]concat=n=3:v=1:a=0[out]`,
         '-map', '[out]',
         '-c:v', 'prores',
@@ -40,7 +41,7 @@ const App = () => {
         '-timecode', startingTimecode,
         'preroll.mov',
       ];
-  
+
       await ffmpeg.current.run(...prerollCommand);
       const data = ffmpeg.current.FS('readFile', 'preroll.mov');
       const blob = new Blob([data.buffer], { type: 'video/quicktime' });
@@ -56,14 +57,13 @@ const App = () => {
   useEffect(() => {
     ffmpeg.current = createFFmpeg({
       log: true,
-      corePath:
-        'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.11.0/dist/ffmpeg-core.js',
+      corePath: 'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.11.0/dist/ffmpeg-core.js',
     });
   }, []);
 
   return (
     <div className="page-app">
-      <h2 align="center">Preroll Video Generator</h2>
+      <h1 align="center">Preroll Sync Video Generator</h1>
 
       <div className="input-group">
         <label htmlFor="timebase-select">Select Frame Rate:</label>
@@ -78,6 +78,18 @@ const App = () => {
           <Option value="25">25 fps</Option>
           <Option value="29.97">29.97 fps</Option>
           <Option value="30">30 fps</Option>
+        </Select>
+
+        <label htmlFor="resolution-select">Select Resolution:</label>
+        <Select
+          id="resolution-select"
+          value={resolution}
+          style={{ width: 200 }}
+          onChange={(value) => setResolution(value)}
+        >
+          <Option value="1280x720">1280x720</Option>
+          <Option value="1920x1080">1920x1080</Option>
+          <Option value="3840x2160">3840x2160</Option>
         </Select>
 
         <Input
