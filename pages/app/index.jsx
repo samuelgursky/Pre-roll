@@ -47,18 +47,14 @@ const App = () => {
       const blob = new Blob([data.buffer], { type: 'video/quicktime' });
       const url = URL.createObjectURL(blob);
 
-      // Function to format current date and time
       const getFormattedDateTime = () => {
         const now = new Date();
-        const date = now.toISOString().slice(0, 10); // Format: YYYY-MM-DD
+        const date = now.toISOString().slice(0, 10);
         const time = now.toTimeString().slice(0, 8).replace(/:/g, '');
         return `${date}_${time}`;
       };
 
-      // Remove special characters from film title
       const safeFilmTitle = filmTitle.replace(/[^a-zA-Z0-9]/g, '');
-
-      // Set the download file name
       setHref(url);
       setDownloadFileName(`${safeFilmTitle}_${getFormattedDateTime()}.mov`);
     } catch (error) {
@@ -74,61 +70,54 @@ const App = () => {
     });
   }, []);
 
+  const inputStyle = { width: 300, marginBottom: 10 };
+  const labelStyle = { display: 'block', marginBottom: 5 };
+
   return (
-    <div className="page-app">
-      <h1 align="center">Preroll Sync Video Generator</h1>
+    <div className="page-app" style={{ textAlign: 'center' }}>
+      <h1>Preroll Sync Video Generator</h1>
 
-      <div className="input-group">
-        <label htmlFor="timebase-select">Select Frame Rate:</label>
-        <Select
-          id="timebase-select"
-          value={timebase}
-          style={{ width: 120 }}
-          onChange={setTimebase}
-        >
-          <Option value="23.976">23.976 fps</Option>
-          <Option value="24">24 fps</Option>
-          <Option value="25">25 fps</Option>
-          <Option value="29.97">29.97 fps</Option>
-          <Option value="30">30 fps</Option>
-        </Select>
-
-        <label htmlFor="resolution-select">Select Resolution:</label>
-        <Select
-          id="resolution-select"
-          value={resolution}
-          style={{ width: 200 }}
-          onChange={(value) => setResolution(value)}
-        >
-          <Option value="1280x720">1280x720</Option>
-          <Option value="1920x1080">1920x1080</Option>
-          <Option value="3840x2160">3840x2160</Option>
-        </Select>
-
-        <Input
-          value={filmTitle}
-          placeholder="Enter film title"
-          onChange={(event) => setFilmTitle(event.target.value)}
-        />
-
-        <Input
-          value={startingTimecode}
-          placeholder="Enter starting timecode"
-          onChange={(event) => setStartingTimecode(event.target.value)}
-        />
-
-        <Button type="primary" onClick={generatePrerollVideo}>
-          Generate Preroll Video
-        </Button>
-      </div>
-
-      {href && (
-        <div>
-          <a href={href} download={downloadFileName}>
-            Download Preroll Video
-          </a>
+      <div className="input-group" style={{ maxWidth: 400, margin: '0 auto', textAlign: 'left' }}>
+        <div style={{ marginBottom: 20 }}>
+          <label htmlFor="timebase-select" style={labelStyle}>Frame Rate:</label>
+          <Select id="timebase-select" value={timebase} style={inputStyle} onChange={setTimebase}>
+            <Option value="23.976">23.976 fps</Option>
+            <Option value="24">24 fps</Option>
+            <Option value="25">25 fps</Option>
+            <Option value="29.97">29.97 fps</Option>
+            <Option value="30">30 fps</Option>
+          </Select>
         </div>
-      )}
+
+        <div style={{ marginBottom: 20 }}>
+          <label htmlFor="resolution-select" style={labelStyle}>Resolution:</label>
+          <Select id="resolution-select" value={resolution} style={inputStyle} onChange={(value) => setResolution(value)}>
+            <Option value="1280x720">1280x720</Option>
+            <Option value="1920x1080">1920x1080</Option>
+            <Option value="3840x2160">3840x2160</Option>
+          </Select>
+        </div>
+
+        <div style={{ marginBottom: 20 }}>
+          <label style={labelStyle}>Film Title:</label>
+          <Input value={filmTitle} placeholder="Film Title" style={inputStyle} onChange={(event) => setFilmTitle(event.target.value)} />
+        </div>
+
+        <div style={{ marginBottom: 20 }}>
+          <label style={labelStyle}>Timecode:</label>
+          <Input value={startingTimecode} placeholder="Timecode" style={inputStyle} onChange={(event) => setStartingTimecode(event.target.value)} />
+        </div>
+
+        <Button type="primary" onClick={generatePrerollVideo} style={inputStyle}>
+          Generate Video
+        </Button>
+
+        {href && (
+          <div>
+            <a href={href} download={downloadFileName}>Download Video</a>
+          </div>
+        )}
+      </div>
     </div>
   );
 };
