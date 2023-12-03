@@ -46,8 +46,21 @@ const App = () => {
       const data = ffmpeg.current.FS('readFile', 'preroll.mov');
       const blob = new Blob([data.buffer], { type: 'video/quicktime' });
       const url = URL.createObjectURL(blob);
+
+      // Function to format current date and time
+      const getFormattedDateTime = () => {
+        const now = new Date();
+        const date = now.toISOString().slice(0, 10); // Format: YYYY-MM-DD
+        const time = now.toTimeString().slice(0, 8).replace(/:/g, '');
+        return `${date}_${time}`;
+      };
+
+      // Remove special characters from film title
+      const safeFilmTitle = filmTitle.replace(/[^a-zA-Z0-9]/g, '');
+
+      // Set the download file name
       setHref(url);
-      setDownloadFileName('preroll.mov');
+      setDownloadFileName(`${safeFilmTitle}_${getFormattedDateTime()}.mov`);
     } catch (error) {
       console.error('Error generating preroll video:', error);
       message.error('Failed to generate preroll video');
