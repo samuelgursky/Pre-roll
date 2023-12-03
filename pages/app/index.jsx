@@ -25,15 +25,36 @@ const App = () => {
       if (!ffmpeg.current.isLoaded()) {
         await ffmpeg.current.load();
       }
-
+  
       const arialBase64 = fontBase64;
       const fontData = await fetchFile(`data:font/ttf;base64,${arialBase64}`);
       ffmpeg.current.FS('writeFile', 'Arial.ttf', fontData);
-
+  
       const fps = parseFloat(timebase);
       const [width, height] = resolution.split('x').map(Number);
       const fontSize = calculateFontSize(width);
-
+  
+      // Generating the audio segments
+      const silence8SecDuration = 8;
+      const toneDuration = 1 / fps;
+      const totalDuration = 10; // Total video duration in seconds
+      const remainingSilenceDuration = totalDuration - silence8SecDuration - toneDuration;
+  
+      // FFmpeg commands to generate audio segments
+      const silence8SecCommand = `-f lavfi -i anullsrc=channel_layout=mono:sample_rate=48000 -t ${silence8SecDuration} -c:a pcm_s24le silence8.wav`;
+      const oneKhzToneCommand = `-f lavfi -i sine=frequency=1000:duration=${toneDuration} -c:a pcm_s24le tone.wav`;
+      const remainingSilenceCommand = `-f lavfi -i anullsrc=channel_layout=mono:sample_rate=48000 -t ${remainingSilenceDuration} -c:a pcm_s24le silenceEnd.wav`;
+  
+      // Execute commands to generate audio files
+      await ffmpeg.current.run(...silence8SecCommand.split(' '));
+      await ffmpeg.current.run(...oneKhzToneCommand.split(' '));
+      await ffmpeg.current.run(...remainingSilenceCommand.split(' '));
+  
+      // Combine audio files into one
+      const combineAudioCommand = `-i silence8.wav -i tone.wav -i silenceEnd.wav -filter_complex [0:a][1:a][2:a]concat=n=3:v=0:a=1 combined.wav`;
+      await ffmpeg.current.run(...combineAudioCommand.split(' '));
+  
+      // Video generation command
       const prerollCommand = [
         '-f', 'lavfi',
         '-i', `color=c=black:s=${width}x${height}:r=${fps}:d=8`,
@@ -42,25 +63,27 @@ const App = () => {
         '-f', 'lavfi',
         '-i', `color=c=black:s=${width}x${height}:r=${fps}:d=${10 - 8 - (1 / fps)}`,
         '-filter_complex', `[0:v]drawtext=fontfile=Arial.ttf:text='${filmTitle.replaceAll("'", "\\'")}':fontcolor=white:fontsize=${fontSize}:x=(w-text_w)/2:y=(h-text_h)/2[v0]; [1:v]drawtext=fontfile=Arial.ttf:text='2':fontcolor=black:fontsize=${fontSize * 2}:x=(w-text_w)/2:y=(h-text_h)/2[v1]; [v0][v1][2:v]concat=n=3:v=1:a=0[out]`,
+        '-i', 'combined.wav',
         '-map', '[out]',
+        '-map', '3:a',
         '-c:v', 'prores',
         '-profile:v', '3',
         '-timecode', startingTimecode,
         'preroll.mov',
       ];
-
+  
       await ffmpeg.current.run(...prerollCommand);
       const data = ffmpeg.current.FS('readFile', 'preroll.mov');
       const blob = new Blob([data.buffer], { type: 'video/quicktime' });
       const url = URL.createObjectURL(blob);
-
+  
       const getFormattedDateTime = () => {
         const now = new Date();
         const date = now.toISOString().slice(0, 10);
         const time = now.toTimeString().slice(0, 8).replace(/:/g, '');
         return `${date}_${time}`;
       };
-
+  
       const safeFilmTitle = filmTitle.replace(/[^a-zA-Z0-9]/g, '');
       setHref(url);
       setDownloadFileName(`${safeFilmTitle}_${getFormattedDateTime()}.mov`);
@@ -68,7 +91,7 @@ const App = () => {
       console.error('Error generating preroll video:', error);
       message.error('Failed to generate preroll video');
     }
-  };
+  };  
 
   useEffect(() => {
     ffmpeg.current = createFFmpeg({
