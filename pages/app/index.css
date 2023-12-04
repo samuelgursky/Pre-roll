@@ -34,6 +34,20 @@
   margin: 0 auto;
 }
 
+/* Responsive adjustments for smaller screens */
+@media (max-width: 767px) {
+  .page-app {
+    width: 90%; /* Adjust this as needed for mobile */
+    padding-top: 10px; /* Example of adjusting padding */
+  }
+  .ant-upload.ant-upload, .exec {
+    width: 100%; /* Full width for mobile */
+  }
+  .ant-input {
+    margin: 5px 0; /* Adjust margin for mobile */
+  }
+}
+
 .ant-upload.ant-upload {
   width: 500px;
   padding: 10px;
@@ -54,6 +68,7 @@ h4 {
 .github-corner:hover .octo-arm {
   animation: octocat-wave 560ms ease-in-out;
 }
+
 @keyframes octocat-wave {
   0%,
   100% {
@@ -68,6 +83,7 @@ h4 {
     transform: rotate(10deg);
   }
 }
+
 @media (max-width: 500px) {
   .github-corner:hover .octo-arm {
     animation: none;
