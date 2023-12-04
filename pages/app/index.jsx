@@ -11,6 +11,7 @@ const App = () => {
   const [startingTimecode, setStartingTimecode] = useState('00:59:50:00');
   const [resolution, setResolution] = useState('1280x720');
   const [version, setVersion] = useState('');
+  const [notes, setNotes] = useState('');
   const [href, setHref] = useState('');
   const [downloadFileName, setDownloadFileName] = useState('');
   const ffmpeg = useRef();
@@ -64,7 +65,8 @@ const App = () => {
         '-i', `color=c=black:s=${width}x${height}:r=${fps}:d=${10 - 8 - (1 / fps)}`,
         '-filter_complex', 
         `[0:v]drawtext=fontfile=Arial.ttf:text='${filmTitle.replaceAll("'", "\\'")}':fontcolor=white:fontsize=${fontSize}:x=(w-text_w)/2:y=(h-text_h)/2, ` +
-        `drawtext=fontfile=Arial.ttf:text='Version ${version.replaceAll("'", "\\'")}':fontcolor=white:fontsize=${fontSize / 2}:x=(w-text_w)/2:y=(h-text_h)/2+${fontSize}[v0]; ` +
+        `drawtext=fontfile=Arial.ttf:text='Version ${version.replaceAll("'", "\\'")}':fontcolor=white:fontsize=${fontSize / 2}:x=(w-text_w)/2:y=(h-text_h)/2+${fontSize}, ` +
+        `drawtext=fontfile=Arial.ttf:text='${notes.replaceAll("'", "\\'")}':fontcolor=white:fontsize=${fontSize / 3}:x=(w-text_w)/2:y=(h-text_h)/2+${fontSize * 1.5}[v0]; ` +
         `[1:v]drawtext=fontfile=Arial.ttf:text='2':fontcolor=black:fontsize=${fontSize * 2}:x=(w-text_w)/2:y=(h-text_h)/2[v1]; ` +
         `[v0][v1][2:v]concat=n=3:v=1:a=0[out]`,
         '-i', 'combined.wav',
@@ -74,7 +76,7 @@ const App = () => {
         '-profile:v', '3',
         '-timecode', startingTimecode,
         'preroll.mov',
-      ];
+      ];      
   
       await ffmpeg.current.run(...prerollCommand);
       const data = ffmpeg.current.FS('readFile', 'preroll.mov');
@@ -145,6 +147,11 @@ const App = () => {
         <div style={{ marginBottom: 20 }}>
           <label style={labelStyle}>Preroll Start Timecode:</label>
           <Input value={startingTimecode} placeholder="Timecode" style={inputStyle} onChange={(event) => setStartingTimecode(event.target.value)} />
+        </div>
+
+        <div style={{ marginBottom: 20 }}>
+        <label style={labelStyle}>Notes:</label>
+        <Input.TextArea value={notes} placeholder="Enter any notes here" style={inputStyle} onChange={(event) => setNotes(event.target.value)} />
         </div>
 
         <Button type="primary" onClick={generatePrerollVideo} style={inputStyle}>
