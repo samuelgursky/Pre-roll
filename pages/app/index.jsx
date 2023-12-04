@@ -10,6 +10,7 @@ const App = () => {
   const [filmTitle, setFilmTitle] = useState('');
   const [startingTimecode, setStartingTimecode] = useState('00:59:50:00');
   const [resolution, setResolution] = useState('1280x720');
+  const [version, setVersion] = useState('');
   const [href, setHref] = useState('');
   const [downloadFileName, setDownloadFileName] = useState('');
   const ffmpeg = useRef();
@@ -54,7 +55,6 @@ const App = () => {
       const combineAudioCommand = `-i silence8.wav -i tone.wav -i silenceEnd.wav -filter_complex [0:a][1:a][2:a]concat=n=3:v=0:a=1 combined.wav`;
       await ffmpeg.current.run(...combineAudioCommand.split(' '));
   
-      // Video generation command
       const prerollCommand = [
         '-f', 'lavfi',
         '-i', `color=c=black:s=${width}x${height}:r=${fps}:d=8`,
@@ -62,7 +62,11 @@ const App = () => {
         '-i', `color=c=white:s=${width}x${height}:r=${fps}:d=${1 / fps}`,
         '-f', 'lavfi',
         '-i', `color=c=black:s=${width}x${height}:r=${fps}:d=${10 - 8 - (1 / fps)}`,
-        '-filter_complex', `[0:v]drawtext=fontfile=Arial.ttf:text='${filmTitle.replaceAll("'", "\\'")}':fontcolor=white:fontsize=${fontSize}:x=(w-text_w)/2:y=(h-text_h)/2[v0]; [1:v]drawtext=fontfile=Arial.ttf:text='2':fontcolor=black:fontsize=${fontSize * 2}:x=(w-text_w)/2:y=(h-text_h)/2[v1]; [v0][v1][2:v]concat=n=3:v=1:a=0[out]`,
+        '-filter_complex', 
+        `[0:v]drawtext=fontfile=Arial.ttf:text='${filmTitle.replaceAll("'", "\\'")}':fontcolor=white:fontsize=${fontSize}:x=(w-text_w)/2:y=(h-text_h)/2, ` +
+        `drawtext=fontfile=Arial.ttf:text='Version ${version.replaceAll("'", "\\'")}':fontcolor=white:fontsize=${fontSize / 2}:x=(w-text_w)/2:y=(h-text_h)/2+${fontSize}[v0]; ` +
+        `[1:v]drawtext=fontfile=Arial.ttf:text='2':fontcolor=black:fontsize=${fontSize * 2}:x=(w-text_w)/2:y=(h-text_h)/2[v1]; ` +
+        `[v0][v1][2:v]concat=n=3:v=1:a=0[out]`,
         '-i', 'combined.wav',
         '-map', '[out]',
         '-map', '3:a',
@@ -134,7 +138,12 @@ const App = () => {
         </div>
 
         <div style={{ marginBottom: 20 }}>
-          <label style={labelStyle}>Timecode:</label>
+          <label style={labelStyle}>Version:</label>
+          <Input value={version} placeholder="Version" style={inputStyle} onChange={(event) => setVersion(event.target.value)} />
+        </div>
+
+        <div style={{ marginBottom: 20 }}>
+          <label style={labelStyle}>Preroll Start Timecode:</label>
           <Input value={startingTimecode} placeholder="Timecode" style={inputStyle} onChange={(event) => setStartingTimecode(event.target.value)} />
         </div>
 
