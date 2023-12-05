@@ -9,7 +9,7 @@ const App = () => {
   const [timebase, setTimebase] = useState('23.976');
   const [videoTitle, setvideoTitle] = useState('');
   const [startingTimecode, setStartingTimecode] = useState('00:59:50:00');
-  const [resolution, setResolution] = useState('1280x720');
+  const [resolution, setResolution] = useState('1920x1080');
   const [version, setVersion] = useState('');
   const [notes, setNotes] = useState('');
   const [href, setHref] = useState('');
