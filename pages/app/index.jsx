@@ -7,7 +7,7 @@ const { Option } = Select;
 
 const App = () => {
   const [timebase, setTimebase] = useState('23.976');
-  const [filmTitle, setFilmTitle] = useState('');
+  const [videoTitle, setvideoTitle] = useState('');
   const [startingTimecode, setStartingTimecode] = useState('00:59:50:00');
   const [resolution, setResolution] = useState('1280x720');
   const [version, setVersion] = useState('');
@@ -63,11 +63,11 @@ const App = () => {
         '-i', `color=c=white:s=${width}x${height}:r=${fps}:d=${1 / fps}`,
         '-f', 'lavfi',
         '-i', `color=c=black:s=${width}x${height}:r=${fps}:d=${10 - 8 - (1 / fps)}`,
-        '-filter_complex', 
-        `[0:v]drawtext=fontfile=Arial.ttf:text='${filmTitle.replaceAll("'", "\\'")}':fontcolor=white:fontsize=${fontSize}:x=(w-text_w)/2:y=(h-text_h)/2, ` +
-        `drawtext=fontfile=Arial.ttf:text='Version ${version.replaceAll("'", "\\'")}':fontcolor=white:fontsize=${fontSize / 2}:x=(w-text_w)/2:y=(h-text_h)/2+${fontSize}, ` +
-        `drawtext=fontfile=Arial.ttf:text='${notes.replaceAll("'", "\\'")}':fontcolor=white:fontsize=${fontSize / 3}:x=(w-text_w)/2:y=(h-text_h)/2+${fontSize * 1.5}[v0]; ` +
-        `[1:v]drawtext=fontfile=Arial.ttf:text='2':fontcolor=black:fontsize=${fontSize * 2}:x=(w-text_w)/2:y=(h-text_h)/2[v1]; ` +
+        '-filter_complex',
+        `[0:v]drawtext=fontfile=Arial.ttf:text='${videoTitle.replaceAll("'", "\\'")}':fontcolor=white:fontsize=${fontSize}:x=(w-text_w)/2:y=(h-text_h)/3, ` + // Title should be at 1/3 from the top
+        `drawtext=fontfile=Arial.ttf:text='Version ${version.replaceAll("'", "\\'")}':fontcolor=white:fontsize=${fontSize / 2}:x=(w-text_w)/2:y=(h-text_h)/3+${fontSize * 2}, ` + // Version is below title with a gap of 2*fontSize
+        `drawtext=fontfile=Arial.ttf:text='${notes.replaceAll("'", "\\'")}':fontcolor=white:fontsize=${fontSize / 3}:x=(w-text_w)/2:y=(h-text_h)/3+${fontSize * 3.5+10}[v0]; ` + // Notes are below version with additional gap
+        `[1:v]drawtext=fontfile=Arial.ttf:text='2':fontcolor=black:fontsize=${fontSize * 2}:x=(w-text_w)/2:y=(h-text_h)/2[v1]; ` + // Number '2' centered
         `[v0][v1][2:v]concat=n=3:v=1:a=0[out]`,
         '-i', 'combined.wav',
         '-map', '[out]',
@@ -76,7 +76,7 @@ const App = () => {
         '-profile:v', '3',
         '-timecode', startingTimecode,
         'preroll.mov',
-      ];      
+      ];         
   
       await ffmpeg.current.run(...prerollCommand);
       const data = ffmpeg.current.FS('readFile', 'preroll.mov');
@@ -90,9 +90,9 @@ const App = () => {
         return `${date}_${time}`;
       };
   
-      const safeFilmTitle = filmTitle.replace(/[^a-zA-Z0-9]/g, '');
+      const safevideoTitle = videoTitle.replace(/[^a-zA-Z0-9]/g, '');
       setHref(url);
-      setDownloadFileName(`${safeFilmTitle}_${getFormattedDateTime()}.mov`);
+      setDownloadFileName(`${safevideoTitle}_${getFormattedDateTime()}.mov`);
     } catch (error) {
       console.error('Error generating preroll video:', error);
       message.error('Failed to generate preroll video');
@@ -135,8 +135,8 @@ const App = () => {
         </div>
 
         <div style={{ marginBottom: 20 }}>
-          <label style={labelStyle}>Film Title:</label>
-          <Input value={filmTitle} placeholder="Film Title" style={inputStyle} onChange={(event) => setFilmTitle(event.target.value)} />
+          <label style={labelStyle}>Video Title:</label>
+          <Input value={videoTitle} placeholder="video Title" style={inputStyle} onChange={(event) => setvideoTitle(event.target.value)} />
         </div>
 
         <div style={{ marginBottom: 20 }}>

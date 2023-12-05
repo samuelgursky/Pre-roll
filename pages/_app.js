@@ -1,6 +1,7 @@
 import "antd/dist/antd.css";
 import "./app/index.css";
 import Script from "next/script";
+import { Analytics } from '@vercel/analytics/react';
 
 function MyApp({ Component, pageProps }) {
   return (
@@ -24,6 +25,7 @@ function MyApp({ Component, pageProps }) {
         `}
       </Script>
       <Component {...pageProps} />
+      <Analytics />
     </>
   );
 }
