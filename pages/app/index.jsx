@@ -62,7 +62,7 @@ const App = () => {
         '-f', 'lavfi',
         '-i', `color=c=white:s=${width}x${height}:r=${fps}:d=${1 / fps}`,
         '-f', 'lavfi',
-        '-i', `color=c=black:s=${width}x${height}:r=${fps}:d=${10 - 8 - (1 / fps)}`,
+        '-i', `color=c=blue:s=${width}x${height}:r=${fps}:d=${10 - 8 - (1 / fps)}`,
         '-filter_complex',
         `[0:v]drawtext=fontfile=Arial.ttf:text='${videoTitle.replaceAll("'", "\\'")}':fontcolor=white:fontsize=${fontSize}:x=(w-text_w)/2:y=(h-text_h)/3, ` + // Title should be at 1/3 from the top
         `drawtext=fontfile=Arial.ttf:text='Version ${version.replaceAll("'", "\\'")}':fontcolor=white:fontsize=${fontSize / 2}:x=(w-text_w)/2:y=(h-text_h)/3+${fontSize * 2}, ` + // Version is below title with a gap of 2*fontSize
